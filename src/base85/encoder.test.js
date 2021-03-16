@@ -34,7 +34,7 @@ describe('StringToInt', () => {
     expect(() => { StringToInt(EmptyString) }).toThrow()
   })
 
-  it('converts four characters to a single integer', () => {
+  it('converts long string to a single integer', () => {
     expect(StringToInt(LongString, 4)).toBe(ExpectedIntFromLongString)
   })
 })
@@ -50,9 +50,9 @@ describe('Encoding and Decoding', () => {
     'ABCDEFG',
     'ABCDEFGH'
   ]
-  
+
   it('encodes and decodes successfully', () => {
-    for(const Text of Texts) {
+    for (const Text of Texts) {
       const EncodedText = Encode(Text)
       const DecodedText = Decode(EncodedText)
       expect(DecodedText).toBe(Text)

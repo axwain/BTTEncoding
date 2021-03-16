@@ -87,7 +87,7 @@ const Alphabet = [
 ]
 
 const DecodingAlphabet = {}
-Alphabet.forEach((x, i) => DecodingAlphabet[x] = i)
+Alphabet.forEach((x, i) => { DecodingAlphabet[x] = i })
 
 const B85 = 85
 const B85_2 = B85 * 85
@@ -101,7 +101,7 @@ export const StringToInt = (text, start = 0) => {
 
   let shiftedBits = 24
   let integer = 0
-  for(let i = start; i < text.length && shiftedBits >= 0; i++, shiftedBits -= 8) {
+  for (let i = start; i < text.length && shiftedBits >= 0; i++, shiftedBits -= 8) {
     integer += text.codePointAt(i) << shiftedBits
   }
   return integer
@@ -118,11 +118,11 @@ const IntToString = (integer) => {
 
 export const Encode = (text) => {
   let Result = ''
-  for(let i = 0; i < text.length; i += 4) {
+  for (let i = 0; i < text.length; i += 4) {
     const CharactersLeft = text.length - i
     const Number = StringToInt(text, i)
     Result += Alphabet[Math.floor(Number / B85_4) % B85]
-    
+
     Result += Alphabet[Math.floor(Number / B85_3) % B85]
 
     if (CharactersLeft > 1) {
@@ -147,12 +147,12 @@ export const Decode = (text) => {
   const CharactersLeft = ExpandedText.length % 5
   let Padding = 0
   if (CharactersLeft > 0) {
-    while(Padding < 5 - CharactersLeft) {
+    while (Padding < 5 - CharactersLeft) {
       ExpandedText += Alphabet[84]
       Padding++
     }
   }
-  for(let i = 0; i < ExpandedText.length; i += 5) {
+  for (let i = 0; i < ExpandedText.length; i += 5) {
     let Number = DecodingAlphabet[ExpandedText[i]] * B85_4
     Number += DecodingAlphabet[ExpandedText[i + 1]] * B85_3
     Number += DecodingAlphabet[ExpandedText[i + 2]] * B85_2
