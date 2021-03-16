@@ -86,9 +86,81 @@ const Alphabet = [
   '}'
 ]
 
+const DecodingAlphabet = {}
+Alphabet.forEach((x, i) => DecodingAlphabet[x] = i)
+
 const B85 = 85
 const B85_2 = B85 * 85
 const B85_3 = B85_2 * 85
 const B85_4 = B85_3 * 85
-const B85_5 = B85_4 * 85
-const Zero5Char = '|'
+
+export const StringToInt = (text, start = 0) => {
+  if (text.length === 0) {
+    throw new Error('String should not be empty')
+  }
+
+  let shiftedBits = 24
+  let integer = 0
+  for(let i = start; i < text.length && shiftedBits >= 0; i++, shiftedBits -= 8) {
+    integer += text.codePointAt(i) << shiftedBits
+  }
+  return integer
+}
+
+const IntToString = (integer) => {
+  return String.fromCodePoint(
+    (integer & 0xFF000000) >> 24,
+    (integer & 0x00FF0000) >> 16,
+    (integer & 0x0000FF00) >> 8,
+    integer & 0x000000FF
+  )
+}
+
+export const Encode = (text) => {
+  let Result = ''
+  for(let i = 0; i < text.length; i += 4) {
+    const CharactersLeft = text.length - i
+    const Number = StringToInt(text, i)
+    Result += Alphabet[Math.floor(Number / B85_4) % B85]
+    
+    Result += Alphabet[Math.floor(Number / B85_3) % B85]
+
+    if (CharactersLeft > 1) {
+      Result += Alphabet[Math.floor(Number / B85_2) % B85]
+    }
+
+    if (CharactersLeft > 2) {
+      Result += Alphabet[Math.floor(Number / B85) % B85]
+    }
+
+    if (CharactersLeft > 3) {
+      Result += Alphabet[Number % B85]
+    }
+  }
+
+  return Result.replace(/!!!!!/g, '|')
+}
+
+export const Decode = (text) => {
+  let Result = ''
+  let ExpandedText = text.replace(/\|/g, '!!!!!')
+  const CharactersLeft = ExpandedText.length % 5
+  let Padding = 0
+  if (CharactersLeft > 0) {
+    while(Padding < 5 - CharactersLeft) {
+      ExpandedText += Alphabet[84]
+      Padding++
+    }
+  }
+  for(let i = 0; i < ExpandedText.length; i += 5) {
+    let Number = DecodingAlphabet[ExpandedText[i]] * B85_4
+    Number += DecodingAlphabet[ExpandedText[i + 1]] * B85_3
+    Number += DecodingAlphabet[ExpandedText[i + 2]] * B85_2
+    Number += DecodingAlphabet[ExpandedText[i + 3]] * B85
+    Number += DecodingAlphabet[ExpandedText[i + 4]]
+
+    Result += IntToString(Number)
+  }
+
+  return Result.substring(0, Result.length - Padding)
+}
