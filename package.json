@@ -4,7 +4,7 @@
   "description": "Binary to text encoding library and tests",
   "main": "index.js",
   "scripts": {
-    "test": "jest --coverage"
+    "test": "jest --coverage --detectOpenHandles"
   },
   "repository": {
     "type": "git",
