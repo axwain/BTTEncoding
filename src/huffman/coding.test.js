@@ -1,8 +1,9 @@
-import { buildHuffmanTree, frequencyCount } from './coding'
+import { buildHuffmanTree, encode, frequencyCount, getHuffmanCodes } from './coding'
 
-const SingleArray = ['A']
-const RepeatedElementArray = [...'AAAAA']
-const TestStringArray = [...'AABCCCDDDDD']
+const OneElementArray = ['A']
+const SingleRepeatedElementArray = [...'AAAAA']
+const TwoRepeatedElementsArray = [...'AAABB']
+const ManyRepeatedElementsArray = [...'AABCCCDDDDD']
 
 describe('frequencyCount', () => {
   it('returns an empty object from an empty array', () => {
@@ -10,16 +11,16 @@ describe('frequencyCount', () => {
   })
 
   it('returns frequency of one for a single element array', () => {
-    expect(frequencyCount(SingleArray)).toEqual({ A: 1 })
+    expect(frequencyCount(OneElementArray)).toEqual({ A: 1 })
   })
 
   it('returns the frequency of a repeated single element in an array', () => {
-    expect(frequencyCount(RepeatedElementArray)).toEqual({ A: RepeatedElementArray.length })
+    expect(frequencyCount(SingleRepeatedElementArray)).toEqual({ A: SingleRepeatedElementArray.length })
   })
 
   it('returns an object map of the frequency of elements in an array', () => {
     const ExpectedFrequencies = { A: 2, B: 1, C: 3, D: 5 }
-    expect(frequencyCount(TestStringArray)).toEqual(ExpectedFrequencies)
+    expect(frequencyCount(ManyRepeatedElementsArray)).toEqual(ExpectedFrequencies)
   })
 })
 
@@ -28,21 +29,22 @@ describe('buildHuffmanTree', () => {
     const Root = buildHuffmanTree([])
     expect(Root.data).toEqual(null)
     expect(Root.symbol).toEqual(null)
+    expect(Root.left).toEqual(null)
+    expect(Root.right).toEqual(null)
   })
 
   it('returns a leaf node with the frequency of a repeated element in an array', () => {
-    const Root = buildHuffmanTree(RepeatedElementArray)
-    expect(Root.data).toEqual(RepeatedElementArray.length)
+    const Root = buildHuffmanTree(SingleRepeatedElementArray)
+    expect(Root.data).toEqual(SingleRepeatedElementArray.length)
     expect(Root.symbol).toEqual('A')
     expect(Root.left).toEqual(null)
     expect(Root.right).toEqual(null)
   })
 
   it('returns a node with the sum of frequencies of the two repeated elements in an array', () => {
-    const TwoRepeatedElements = [...'AAABB']
-    const Root = buildHuffmanTree(TwoRepeatedElements)
+    const Root = buildHuffmanTree(TwoRepeatedElementsArray)
 
-    expect(Root.data).toEqual(TwoRepeatedElements.length)
+    expect(Root.data).toEqual(TwoRepeatedElementsArray.length)
     expect(Root.symbol).toEqual(null)
     expect(Root.left.data).toEqual(2)
     expect(Root.left.symbol).toEqual('B')
@@ -51,7 +53,7 @@ describe('buildHuffmanTree', () => {
   })
 
   it('returns the root node of a huffman tree from an array with repeated elements', () => {
-    const Result = buildHuffmanTree(TestStringArray)
+    const Result = buildHuffmanTree(ManyRepeatedElementsArray)
 
     expect(Result.data).toEqual(11)
     expect(Result.symbol).toEqual(null)
@@ -62,5 +64,53 @@ describe('buildHuffmanTree', () => {
     expect(Result.right.left.data).toEqual(3)
     expect(Result.right.left.symbol).toEqual('C')
     expect(Result.right.right.data).toEqual(3)
+  })
+})
+
+describe('getHuffmanCodes', () => {
+  it('returns an empty object on an empty tree', () => {
+    const EmptyTree = buildHuffmanTree([])
+    expect(getHuffmanCodes(EmptyTree)).toEqual({})
+  })
+
+  it('returns 0 as the Huffman Code of a single element array', () => {
+    const Root = buildHuffmanTree(OneElementArray)
+    expect(getHuffmanCodes(Root)).toEqual({ A: 0 })
+  })
+
+  it('returns 0 as the Huffman Code of a single repeated element array', () => {
+    const Root = buildHuffmanTree(SingleRepeatedElementArray)
+    expect(getHuffmanCodes(Root)).toEqual({ A: 0 })
+  })
+
+  it('return the Huffman Codes of an array with many repeated elements', () => {
+    const Root = buildHuffmanTree(ManyRepeatedElementsArray)
+    const ExpectedCodes = { A: 7, B: 6, C: 2, D: 0 }
+
+    expect(getHuffmanCodes(Root)).toEqual(ExpectedCodes)
+  })
+})
+
+describe('encode', () => {
+  it('returns an empty array for an empty array', () => {
+    const Tree = buildHuffmanTree([])
+    expect(encode([], Tree)).toEqual([])
+  })
+
+  it('returns the same array for a single element array', () => {
+    const Tree = buildHuffmanTree(OneElementArray)
+    expect(encode(OneElementArray, Tree)).toEqual(OneElementArray)
+  })
+
+  it('returns an array with a 0 and the number of padding bits for a single repeated element array', () => {
+    const PaddingBits = 8 - SingleRepeatedElementArray.length
+    const Tree = buildHuffmanTree(SingleRepeatedElementArray)
+    expect(encode(SingleRepeatedElementArray, Tree)).toEqual([0, PaddingBits])
+  })
+
+  it('returns a huffman coded array, with padding bits as its last element', () => {
+    const ExpectedArray = [255, 84, 0, 4]
+    const Tree = buildHuffmanTree(ManyRepeatedElementsArray)
+    expect(encode(ManyRepeatedElementsArray, Tree)).toEqual(ExpectedArray)
   })
 })

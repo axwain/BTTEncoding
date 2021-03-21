@@ -42,3 +42,60 @@ export function buildHuffmanTree (iterable) {
   }
   return new HuffmanNode(null, null)
 }
+
+export function getHuffmanCodes (tree, code = 0, codes = {}) {
+  if (tree === null) {
+    return codes
+  }
+
+  if (tree.symbol !== null) {
+    codes[tree.symbol] = code
+  } else {
+    getHuffmanCodes(tree.left, code << 1, codes)
+    getHuffmanCodes(tree.right, (code << 1) + 1, codes)
+  }
+  return codes
+}
+
+export function encode (array, tree) {
+  if (array.length > 1) {
+    const Codes = getHuffmanCodes(tree)
+    const Keys = Object.keys(Codes)
+    const BitLength = {}
+    Keys.forEach(value => {
+      let Code = Codes[value]
+      let length = 0
+      do {
+        Code = Code >> 1
+        length++
+      } while (Code > 0)
+      BitLength[value] = length
+    })
+
+    const Result = []
+    let filledBits = 0
+    let item = 0
+    for (const Element of array) {
+      const Code = Codes[Element]
+      const Length = BitLength[Element]
+      filledBits += Length
+      const OverflowBits = filledBits > 8 ? filledBits - 8 : 0
+      const PushedCode = (Code >> OverflowBits)
+      item = (item << (Length - OverflowBits)) + PushedCode
+      if (filledBits >= 8) {
+        Result.push(item)
+        item = (PushedCode << OverflowBits) ^ Code
+        filledBits = OverflowBits
+      }
+    }
+
+    if (filledBits > 0 && filledBits < 8) {
+      const Padding = 8 - filledBits
+      item = item << Padding
+      Result.push(item)
+      Result.push(Padding)
+    }
+    return Result
+  }
+  return array
+}
