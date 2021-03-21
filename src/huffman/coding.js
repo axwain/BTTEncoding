@@ -57,26 +57,21 @@ export function getHuffmanCodes (tree, code = 0, codes = {}) {
   return codes
 }
 
-export function encode (array, tree) {
-  if (array.length > 1) {
-    const Codes = getHuffmanCodes(tree)
-    const Keys = Object.keys(Codes)
-    const BitLength = {}
-    Keys.forEach(value => {
-      let Code = Codes[value]
-      let length = 0
-      do {
-        Code = Code >> 1
-        length++
-      } while (Code > 0)
-      BitLength[value] = length
-    })
+export function getHuffmanSymbolMap (tree) {
+  const Codes = getHuffmanCodes(tree)
+  const Symbols = {}
+  Object.keys(Codes).forEach(symbol => { Symbols[Codes[symbol]] = symbol })
+  return Symbols
+}
 
+export function encode (array, codes) {
+  if (array.length > 1) {
     const Result = []
+    const BitLength = getBitLength(codes)
     let filledBits = 0
     let item = 0
     for (const Element of array) {
-      const Code = Codes[Element]
+      const Code = codes[Element]
       const Length = BitLength[Element]
       filledBits += Length
       const OverflowBits = filledBits > 8 ? filledBits - 8 : 0
@@ -89,13 +84,57 @@ export function encode (array, tree) {
       }
     }
 
-    if (filledBits > 0 && filledBits < 8) {
+    if (filledBits > 0) {
       const Padding = 8 - filledBits
       item = item << Padding
       Result.push(item)
       Result.push(Padding)
+    } else {
+      Result.push(0)
     }
     return Result
   }
   return array
+}
+
+export function decode (array, symbols) {
+  const Result = []
+  if (array.length > 1) {
+    let code = 0
+    const FindSymbols = function (item, maxBits) {
+      for (let j = 0; j < maxBits; j++) {
+        code += (item & 128) >> 7
+        item = item << 1
+        if (symbols[code]) {
+          Result.push(symbols[code])
+          code = 0
+        } else {
+          code = code << 1
+        }
+      }
+    }
+
+    for (let i = 0; i < array.length - 2; i++) {
+      FindSymbols(array[i], 8)
+    }
+
+    const Padding = array[array.length - 1]
+    FindSymbols(array[array.length - 1], 8 - Padding)
+  }
+  return Result
+}
+
+function getBitLength (codes) {
+  const BitLength = {}
+  Object.keys(codes).forEach(value => {
+    let Code = codes[value]
+    let length = 0
+    do {
+      Code = Code >> 1
+      length++
+    } while (Code > 0)
+    BitLength[value] = length
+  })
+
+  return BitLength
 }
