@@ -1,4 +1,4 @@
-import { Alphabet, B85, B85_2, B85_3, B85_4, LastSymbol } from './constants'
+import { Alphabet, B85, B85_2, B85_3, B85_4, LastSymbol } from './constants.js'
 
 export const Decode85 = (text) => {
   const Result = []

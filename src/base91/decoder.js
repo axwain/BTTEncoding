@@ -1,4 +1,4 @@
-import { Alphabet } from './constants'
+import { Alphabet } from './constants.js'
 
 export const Decode91 = (text) => {
   let length = text.length

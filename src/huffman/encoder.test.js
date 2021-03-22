@@ -1,4 +1,4 @@
-import { buildHuffmanTree, decode, encode, frequencyCount, getHuffmanCodes, getHuffmanSymbolMap } from './coding'
+import { buildHuffmanTree, encode, frequencyCount, getHuffmanCodes } from './encoder'
 
 const OneElementArray = ['A']
 const SingleRepeatedElementArray = [...'AAAAAAAA']
@@ -112,23 +112,5 @@ describe('encode', () => {
     const ExpectedArray = [255, 84, 0, 4]
     const Codes = getHuffmanCodes(buildHuffmanTree(ManyRepeatedElementsArray))
     expect(encode(ManyRepeatedElementsArray, Codes)).toEqual(ExpectedArray)
-  })
-})
-
-describe('decode', () => {
-  const NoSymbols = getHuffmanSymbolMap(buildHuffmanTree([]))
-  const SingleSymbol = getHuffmanSymbolMap(buildHuffmanTree(SingleRepeatedElementArray))
-  const SymbolMap = getHuffmanSymbolMap(buildHuffmanTree(ManyRepeatedElementsArray))
-
-  it('returns an empty array for an empty array', () => {
-    expect(decode([], NoSymbols)).toEqual([])
-  })
-
-  it('decodes an array from a map with a single code', () => {
-    expect(decode([0, 0], SingleSymbol)).toEqual(SingleRepeatedElementArray)
-  })
-
-  it('decodes an array from a Huffman Coding symbol map', () => {
-    expect(decode([255, 84, 0, 4], SymbolMap)).toEqual(ManyRepeatedElementsArray)
   })
 })

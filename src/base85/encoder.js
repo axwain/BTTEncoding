@@ -1,8 +1,9 @@
-import { Alphabet as DecodingAlphabet, B85, B85_2, B85_3, B85_4 } from './constants'
+import { Alphabet as DecodingAlphabet, B85, B85_2, B85_3, B85_4 } from './constants.js'
+
 const EncodingAlphabet = []
 Object.keys(DecodingAlphabet).sort().forEach(key => EncodingAlphabet.push(key))
 
-export const ByteToInt = (byteArray, start = 0) => {
+export const ByteToUint = (byteArray, start = 0) => {
   if (byteArray.length === 0) {
     throw new Error('Byte array should not be empty')
   }
@@ -10,16 +11,18 @@ export const ByteToInt = (byteArray, start = 0) => {
   let shiftedBits = 24
   let integer = 0
   for (let i = start; i < byteArray.length && shiftedBits >= 0; i++, shiftedBits -= 8) {
-    integer += byteArray.codePointAt(i) << shiftedBits
+    integer += byteArray[i] << shiftedBits
   }
-  return integer
+
+  // Ensure it is an unsigned integer
+  return integer >>> 0
 }
 
 export const Encode85 = (byteArray) => {
   let Result = ''
   for (let i = 0; i < byteArray.length; i += 4) {
     const CharactersLeft = byteArray.length - i
-    const Number = ByteToInt(byteArray, i)
+    const Number = ByteToUint(byteArray, i)
     Result += EncodingAlphabet[Math.floor(Number / B85_4) % B85]
 
     Result += EncodingAlphabet[Math.floor(Number / B85_3) % B85]
