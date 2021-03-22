@@ -1,6 +1,6 @@
 import { Alphabet, B85, B85_2, B85_3, B85_4, LastSymbol } from './constants'
 
-export function Decode85 (text) {
+export const Decode85 = (text) => {
   const Result = []
   let ExpandedText = text.replace(/\|/g, '!!!!!')
   const CharactersLeft = ExpandedText.length % 5
