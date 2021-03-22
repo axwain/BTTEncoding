@@ -1,4 +1,5 @@
 import { Alphabet as DecodingAlphabet, B85, B85_2, B85_3, B85_4 } from './constants.js'
+
 const EncodingAlphabet = []
 Object.keys(DecodingAlphabet).sort().forEach(key => EncodingAlphabet.push(key))
 
@@ -10,7 +11,7 @@ export const ByteToInt = (byteArray, start = 0) => {
   let shiftedBits = 24
   let integer = 0
   for (let i = start; i < byteArray.length && shiftedBits >= 0; i++, shiftedBits -= 8) {
-    integer += byteArray.codePointAt(i) << shiftedBits
+    integer += byteArray[i] << shiftedBits
   }
   return integer
 }

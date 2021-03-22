@@ -1,13 +1,17 @@
 import { Encode85, ByteToInt } from './encoder'
 import { Decode85 } from './decoder'
 
+function stringToByteArray (string) {
+  return Uint8Array.from(string, s => s.codePointAt(0))
+}
+
 describe('byteToInt', () => {
-  const OneCharacter = 'A'
-  const TwoCharacter = 'AB'
-  const ThreeCharacter = 'ABC'
-  const FourCharacter = 'ABCD'
-  const EmptyString = ''
-  const LongString = 'ABCDEF'
+  const OneCharacter = stringToByteArray('A')
+  const TwoCharacter = stringToByteArray('AB')
+  const ThreeCharacter = stringToByteArray('ABC')
+  const FourCharacter = stringToByteArray('ABCD')
+  const EmptyString = stringToByteArray('')
+  const LongString = stringToByteArray('ABCDEF')
 
   const ExpectedIntFromOneChar = 65 << 24
   const ExpectedIntFromTwoChars = ExpectedIntFromOneChar + (66 << 16)
@@ -46,13 +50,13 @@ describe('Encoding and Decoding', () => {
     Texts.push(Texts[i - 1] + String.fromCodePoint(65 + i))
   }
 
-  const ExpectedArrays = Texts.map(t => Uint8Array.from(t, c => c.codePointAt(0)))
+  const ByteArrays = Texts.map(t => Uint8Array.from(t, c => c.codePointAt(0)))
 
   it('encodes and decodes successfully', () => {
-    for (let i = 0; i < Texts.length; i++) {
-      const EncodedText = Encode85(Texts[i])
+    for (const ByteArray of ByteArrays) {
+      const EncodedText = Encode85(ByteArray)
       const DecodedText = Decode85(EncodedText)
-      expect(DecodedText).toEqual(ExpectedArrays[i])
+      expect(DecodedText).toEqual(ByteArray)
     }
   })
 })
