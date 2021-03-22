@@ -1,6 +1,7 @@
-import { Decode, Encode, StringToInt } from './encoder'
+import { Encode85, ByteToInt } from './encoder'
+import { Decode85 } from './decoder'
 
-describe('StringToInt', () => {
+describe('byteToInt', () => {
   const OneCharacter = 'A'
   const TwoCharacter = 'AB'
   const ThreeCharacter = 'ABC'
@@ -15,47 +16,43 @@ describe('StringToInt', () => {
   const ExpectedIntFromLongString = (69 << 24) + (70 << 16)
 
   it('converts a single character to an integer', () => {
-    expect(StringToInt(OneCharacter)).toBe(ExpectedIntFromOneChar)
+    expect(ByteToInt(OneCharacter)).toBe(ExpectedIntFromOneChar)
   })
 
   it('converts two characters to a single integer', () => {
-    expect(StringToInt(TwoCharacter)).toBe(ExpectedIntFromTwoChars)
+    expect(ByteToInt(TwoCharacter)).toBe(ExpectedIntFromTwoChars)
   })
 
   it('converts three characters to a single integer', () => {
-    expect(StringToInt(ThreeCharacter)).toBe(ExpectedIntFromThreeChars)
+    expect(ByteToInt(ThreeCharacter)).toBe(ExpectedIntFromThreeChars)
   })
 
   it('converts four characters to a single integer', () => {
-    expect(StringToInt(FourCharacter)).toBe(ExpectedIntFromFourChars)
+    expect(ByteToInt(FourCharacter)).toBe(ExpectedIntFromFourChars)
   })
 
   it('throws an error if the string is empty', () => {
-    expect(() => { StringToInt(EmptyString) }).toThrow()
+    expect(() => { ByteToInt(EmptyString) }).toThrow()
   })
 
   it('converts long string to a single integer', () => {
-    expect(StringToInt(LongString, 4)).toBe(ExpectedIntFromLongString)
+    expect(ByteToInt(LongString, 4)).toBe(ExpectedIntFromLongString)
   })
 })
 
 describe('Encoding and Decoding', () => {
-  const Texts = [
-    'A',
-    'AB',
-    'ABC',
-    'ABCD',
-    'ABCDE',
-    'ABCDEF',
-    'ABCDEFG',
-    'ABCDEFGH'
-  ]
+  const Texts = ['A']
+  for (let i = 1; i < 8; i++) {
+    Texts.push(Texts[i - 1] + String.fromCodePoint(65 + i))
+  }
+
+  const ExpectedArrays = Texts.map(t => Uint8Array.from(t, c => c.codePointAt(0)))
 
   it('encodes and decodes successfully', () => {
-    for (const Text of Texts) {
-      const EncodedText = Encode(Text)
-      const DecodedText = Decode(EncodedText)
-      expect(DecodedText).toBe(Text)
+    for (let i = 0; i < Texts.length; i++) {
+      const EncodedText = Encode85(Texts[i])
+      const DecodedText = Decode85(EncodedText)
+      expect(DecodedText).toEqual(ExpectedArrays[i])
     }
   })
 })
