@@ -8,17 +8,16 @@ class HuffmanNode extends Node {
   }
 }
 
-export function frequencyCount (iterable) {
+export function frequencyCount (byteArray) {
   const Frequencies = {}
-  if (iterable.length > 0) {
-    iterable.reduce((accumulator, value) => {
-      if (accumulator[value]) {
-        accumulator[value]++
+  if (byteArray.length > 0) {
+    for (let i = 0; i < byteArray.length; i++) {
+      if (Frequencies[byteArray[i]]) {
+        Frequencies[byteArray[i]]++
       } else {
-        accumulator[value] = 1
+        Frequencies[byteArray[i]] = 1
       }
-      return accumulator
-    }, Frequencies)
+    }
   }
   return Frequencies
 }
