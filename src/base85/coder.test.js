@@ -1,46 +1,52 @@
-import { Encode85, ByteToInt } from './encoder'
+import { Encode85, ByteToUint } from './encoder'
 import { Decode85 } from './decoder'
 
 function stringToByteArray (string) {
   return Uint8Array.from(string, s => s.codePointAt(0))
 }
 
-describe('byteToInt', () => {
-  const OneCharacter = stringToByteArray('A')
-  const TwoCharacter = stringToByteArray('AB')
-  const ThreeCharacter = stringToByteArray('ABC')
-  const FourCharacter = stringToByteArray('ABCD')
-  const EmptyString = stringToByteArray('')
-  const LongString = stringToByteArray('ABCDEF')
-
-  const ExpectedIntFromOneChar = 65 << 24
-  const ExpectedIntFromTwoChars = ExpectedIntFromOneChar + (66 << 16)
-  const ExpectedIntFromThreeChars = ExpectedIntFromTwoChars + (67 << 8)
-  const ExpectedIntFromFourChars = ExpectedIntFromThreeChars + 68
-  const ExpectedIntFromLongString = (69 << 24) + (70 << 16)
+describe('ByteToUint', () => {
+  const ExpectedIntFromOneElement = 65 << 24
+  const ExpectedIntFromTwoElements = ExpectedIntFromOneElement + (66 << 16)
+  const ExpectedIntFromThreeElements = ExpectedIntFromTwoElements + (67 << 8)
+  const ExpectedIntFromFourElements = ExpectedIntFromThreeElements + 68
+  const ExpectedIntFromManyElements = (69 << 24) + (70 << 16)
 
   it('converts a single character to an integer', () => {
-    expect(ByteToInt(OneCharacter)).toBe(ExpectedIntFromOneChar)
+    const OneElement = stringToByteArray('A')
+    expect(ByteToUint(OneElement)).toBe(ExpectedIntFromOneElement)
   })
 
   it('converts two characters to a single integer', () => {
-    expect(ByteToInt(TwoCharacter)).toBe(ExpectedIntFromTwoChars)
+    const TwoElements = stringToByteArray('AB')
+    expect(ByteToUint(TwoElements)).toBe(ExpectedIntFromTwoElements)
   })
 
   it('converts three characters to a single integer', () => {
-    expect(ByteToInt(ThreeCharacter)).toBe(ExpectedIntFromThreeChars)
+    const ThreeElements = stringToByteArray('ABC')
+    expect(ByteToUint(ThreeElements)).toBe(ExpectedIntFromThreeElements)
   })
 
   it('converts four characters to a single integer', () => {
-    expect(ByteToInt(FourCharacter)).toBe(ExpectedIntFromFourChars)
+    const FourElements = stringToByteArray('ABCD')
+    expect(ByteToUint(FourElements)).toBe(ExpectedIntFromFourElements)
   })
 
   it('throws an error if the string is empty', () => {
-    expect(() => { ByteToInt(EmptyString) }).toThrow()
+    const Empty = stringToByteArray('')
+    expect(() => { ByteToUint(Empty) }).toThrow()
   })
 
   it('converts long string to a single integer', () => {
-    expect(ByteToInt(LongString, 4)).toBe(ExpectedIntFromLongString)
+    const ManyElements = stringToByteArray('ABCDEF')
+    expect(ByteToUint(ManyElements, 4)).toBe(ExpectedIntFromManyElements)
+  })
+
+  it('converts to a positive integer', () => {
+    const ExpectedInteger = 4278190080
+    const ByteArray = Uint8Array.from([255, 0, 0, 0])
+
+    expect(ByteToUint(ByteArray)).toBe(ExpectedInteger)
   })
 })
 
