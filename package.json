@@ -4,7 +4,7 @@
   "description": "Binary to text encoding library and tests",
   "main": "index.js",
   "scripts": {
-    "benchmark-encoding": "node ./src/benchmark/encoding/benchmark.js",
+    "benchmark-encoding": "node ./src/scripts/benchmarkEncoding.js",
     "test": "jest --coverage --detectOpenHandles"
   },
   "repository": {
