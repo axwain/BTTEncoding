@@ -1,4 +1,4 @@
-import { Alphabet as DecodingAlphabet, B85, B85_2, B85_3, B85_4 } from './constants'
+import { Alphabet as DecodingAlphabet, B85, B85_2, B85_3, B85_4 } from './constants.js'
 const EncodingAlphabet = []
 Object.keys(DecodingAlphabet).sort().forEach(key => EncodingAlphabet.push(key))
 

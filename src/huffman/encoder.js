@@ -1,5 +1,5 @@
-import { Node } from '../data_structures/binaryTree'
-import { PriorityQueue } from '../data_structures/priorityQueue'
+import { Node } from '../data_structures/binaryTree.js'
+import { PriorityQueue } from '../data_structures/priorityQueue.js'
 
 class HuffmanNode extends Node {
   constructor (frequency, symbol) {
