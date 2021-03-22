@@ -2,13 +2,13 @@ import { readFileSync, writeFileSync } from 'fs'
 import { opendir } from 'fs/promises'
 import { join } from 'path'
 
-import { mean, sampleVariance } from 'simple-statistics'
+import { max, mean, sampleVariance } from 'simple-statistics'
 import colors from 'colors/safe.js'
 
-import { Encode85 } from '../../base85/encoder.js'
-import { Encode91 } from '../../base91/encoder.js'
-import { buildHuffmanTree, encode, getHuffmanCodes, getHuffmanSymbolMap } from '../../huffman/encoder.js'
-import { formatByteSize } from '../../utils/formatByteSize.js'
+import { Encode85 } from '../base85/encoder.js'
+import { Encode91 } from '../base91/encoder.js'
+import { buildHuffmanTree, encode, getHuffmanCodes, getHuffmanSymbolMap } from '../huffman/encoder.js'
+import { formatByteSize } from '../utils/formatByteSize.js'
 
 function Encode64 (buffer) {
   return buffer.toString('base64')
@@ -101,13 +101,13 @@ const Keys = [
 ]
 
 function ComputeBenchMarkResults (data) {
-  let result = 'Method,Mean,Variance\n'
+  let result = 'Method,Mean,Variance,Max\n'
   for (let i = 0; i < Keys.length; i++) {
     const Column = []
     for (const Row of data) {
       Column.push(Row[i] * 100 / Row[FileSizeKey])
     }
-    result += `${Keys[i]},${mean(Column).toFixed(3)},${sampleVariance(Column).toFixed(3)}\n`
+    result += `${Keys[i]},${mean(Column).toFixed(3)},${sampleVariance(Column).toFixed(3)},${max(Column).toFixed(3)}\n`
     Column.length = 0
   }
 
@@ -115,16 +115,16 @@ function ComputeBenchMarkResults (data) {
 }
 
 function DataToString (data) {
-  const Columns = Keys.map(k => `${k} bytes,delta%`)
-  let table = 'File,Size,' + Columns.join() + '\n'
+  let sizeTable = 'File,Size,' + Keys.map(k => `${k} bytes`).join() + '\n'
+  let percentageTable = '\n\nFile,' + Keys.map(k => `${k} %`).join() + '\n'
   for (const Row of data) {
     const FilePath = Row[FilePathKey]
     const FileSize = Row[FileSizeKey]
     const Sizes = Row.map(c => c).splice(0, FileSizeKey)
-    const Columns = Sizes.map(c => `${formatByteSize(c)},${(c * 100 / FileSize).toFixed(3)}`).join()
-    table += `${FilePath},${formatByteSize(FileSize)},${Columns}\n`
+    sizeTable += `${FilePath},${formatByteSize(FileSize)},${Sizes.map(c => `${formatByteSize(c)}`).join()}\n`
+    percentageTable += `${FilePath},${Sizes.map(c => `${(c * 100 / FileSize).toFixed(3)}`).join()}\n`
   }
-  return table
+  return sizeTable + percentageTable
 }
 
 async function benchmark (path) {
@@ -146,12 +146,14 @@ async function benchmark (path) {
 
     // Get File and Encoding Data
     const Data = []
+    const StartTime = process.hrtime()
     for (const File of Files) {
       const Start = process.hrtime()
       process.stdout.write(`${colors.cyan.dim.bold('Testing file:')} ${File}`)
       Data.push(processFile(File))
-      process.stdout.write(colors.cyan.dim(`... Done in ${process.hrtime(Start)}ms\n`))
+      process.stdout.write(colors.cyan.dim(`... Done in ${process.hrtime(Start)}s\n`))
     }
+    process.stdout.write(colors.cyan.dim(`All encoding done in ${process.hrtime(StartTime)}s\n`))
 
     console.info(colors.cyan.dim('Computing Results...'))
     const Results = ComputeBenchMarkResults(Data)
