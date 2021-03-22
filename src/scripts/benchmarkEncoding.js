@@ -17,19 +17,19 @@ function Encode64 (buffer) {
 function EncodeHuffman (buffer) {
   const Tree = buildHuffmanTree(buffer)
   const Codes = getHuffmanCodes(Tree)
-  const SymbolsSize = JSON.stringify(getHuffmanSymbolMap(Tree)).length * 4
+  const SymbolsSize = JSON.stringify(getHuffmanSymbolMap(Tree)).length
   return { data: encode(buffer, Codes), symbolsSize: SymbolsSize }
 }
 
-function getSize (array) {
-  return array.data ? (array.data.length + array.symbolsSize) : (array.length)
+function getSize (array, symbolsSize) {
+  return (array.length || array.data.length) + (symbolsSize || 0)
 }
 
 function processFile (filepath) {
   const Data = []
   const File = readFileSync(filepath)
 
-  const Push = (array) => Data.push(getSize(array))
+  const Push = (array, symbolsSize) => Data.push(getSize(array, symbolsSize))
 
   const HuffmanCoded = EncodeHuffman(File)
 
@@ -55,21 +55,21 @@ function processFile (filepath) {
   Push(B64)
   Push(B85)
   Push(B91)
-  Push(B64Huff)
-  Push(B85Huff)
-  Push(B91Huff)
-  Push(B64HuffB64)
-  Push(B85HuffB64)
-  Push(B91HuffB64)
-  Push(B64HuffB85)
-  Push(B85HuffB85)
-  Push(B91HuffB85)
-  Push(B64HuffB91)
-  Push(B85HuffB91)
-  Push(B91HuffB91)
-  Push(HuffB64)
-  Push(HuffB85)
-  Push(HuffB91)
+  Push(B64Huff, B64Huff.symbolsSize)
+  Push(B85Huff, B85Huff.symbolsSize)
+  Push(B91Huff, B91Huff.symbolsSize)
+  Push(B64HuffB64, B64Huff.symbolsSize)
+  Push(B85HuffB64, B85Huff.symbolsSize)
+  Push(B91HuffB64, B91Huff.symbolsSize)
+  Push(B64HuffB85, B64Huff.symbolsSize)
+  Push(B85HuffB85, B85Huff.symbolsSize)
+  Push(B91HuffB85, B91Huff.symbolsSize)
+  Push(B64HuffB91, B64Huff.symbolsSize)
+  Push(B85HuffB91, B85Huff.symbolsSize)
+  Push(B91HuffB91, B91Huff.symbolsSize)
+  Push(HuffB64, HuffmanCoded.symbolsSize)
+  Push(HuffB85, HuffmanCoded.symbolsSize)
+  Push(HuffB91, HuffmanCoded.symbolsSize)
 
   Data.push(File.byteLength)
   Data.push(filepath)
