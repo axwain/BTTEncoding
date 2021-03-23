@@ -5,6 +5,8 @@ import { join } from 'path'
 import { max, mean, sampleVariance } from 'simple-statistics'
 import colors from 'colors/safe.js'
 
+import { Encode16 } from '../base16/encoder.js'
+import { Encode32 } from '../base32/encoder.js'
 import { Encode85 } from '../base85/encoder.js'
 import { Encode91 } from '../base91/encoder.js'
 import { buildHuffmanTree, encode, getHuffmanCodes, getHuffmanSymbolMap } from '../huffman/encoder.js'
@@ -14,62 +16,59 @@ function Encode64 (buffer) {
   return buffer.toString('base64')
 }
 
+function EncodeFunc (encoder) {
+  return (buffer) => {
+    const Data = encoder(buffer)
+    return { data: Buffer.from(Data), size: Data.length }
+  }
+}
+
 function EncodeHuffman (buffer) {
   const Tree = buildHuffmanTree(buffer)
   const Codes = getHuffmanCodes(Tree)
   const SymbolsSize = JSON.stringify(getHuffmanSymbolMap(Tree)).length
-  return { data: encode(buffer, Codes), symbolsSize: SymbolsSize }
+  const Data = encode(buffer, Codes)
+  return { data: Buffer.from(Data), size: Data.length + SymbolsSize }
 }
 
-function getSize (array, symbolsSize) {
-  return (array.length || array.data.length) + (symbolsSize || 0)
+const Huffman = 'Huffman'
+
+const Encoders = {
+  Base16: EncodeFunc(Encode16),
+  Base32: EncodeFunc(Encode32),
+  Base64: EncodeFunc(Encode64),
+  Base85: EncodeFunc(Encode85),
+  Base91: EncodeFunc(Encode91)
 }
+
+const EncodersKeys = Object.keys(Encoders)
+const Cases = []
+
+for (const Key of EncodersKeys) {
+  Cases.push(Key)
+  Cases.push(`${Key} + ${Huffman}`)
+  for (const SecondKey of EncodersKeys) {
+    Cases.push(`${Key} + ${Huffman} + ${SecondKey}`)
+  }
+}
+
+Cases.push(Huffman)
 
 function processFile (filepath) {
   const Data = []
   const File = readFileSync(filepath)
 
-  const Push = (array, symbolsSize) => Data.push(getSize(array, symbolsSize))
+  for (const Key of EncodersKeys) {
+    const BaseEncoded = Encoders[Key](File)
+    const HuffmanCoded = EncodeHuffman(BaseEncoded.data)
+    Data.push(BaseEncoded.size)
+    Data.push(HuffmanCoded.size)
+    for (const SecondKey of EncodersKeys) {
+      Data.push(Encoders[SecondKey](HuffmanCoded.data).size)
+    }
+  }
 
-  const HuffmanCoded = EncodeHuffman(File)
-
-  const B64 = Encode64(File)
-  const B85 = Encode85(File)
-  const B91 = Encode91(File)
-  const B64Huff = EncodeHuffman(Buffer.from(B64))
-  const B85Huff = EncodeHuffman(Buffer.from(B85))
-  const B91Huff = EncodeHuffman(Buffer.from(B91))
-  const B64HuffB64 = Encode64(Buffer.from(B64Huff.data))
-  const B85HuffB64 = Encode64(Buffer.from(B85Huff.data))
-  const B91HuffB64 = Encode64(Buffer.from(B91Huff.data))
-  const B64HuffB85 = Encode85(Buffer.from(B64Huff.data))
-  const B85HuffB85 = Encode85(Buffer.from(B85Huff.data))
-  const B91HuffB85 = Encode85(Buffer.from(B91Huff.data))
-  const B64HuffB91 = Encode91(Buffer.from(B64Huff.data))
-  const B85HuffB91 = Encode91(Buffer.from(B85Huff.data))
-  const B91HuffB91 = Encode91(Buffer.from(B91Huff.data))
-  const HuffB64 = Encode64(Buffer.from(HuffmanCoded.data))
-  const HuffB85 = Encode85(HuffmanCoded.data)
-  const HuffB91 = Encode91(HuffmanCoded.data)
-
-  Push(B64)
-  Push(B85)
-  Push(B91)
-  Push(B64Huff, B64Huff.symbolsSize)
-  Push(B85Huff, B85Huff.symbolsSize)
-  Push(B91Huff, B91Huff.symbolsSize)
-  Push(B64HuffB64, B64Huff.symbolsSize)
-  Push(B85HuffB64, B85Huff.symbolsSize)
-  Push(B91HuffB64, B91Huff.symbolsSize)
-  Push(B64HuffB85, B64Huff.symbolsSize)
-  Push(B85HuffB85, B85Huff.symbolsSize)
-  Push(B91HuffB85, B91Huff.symbolsSize)
-  Push(B64HuffB91, B64Huff.symbolsSize)
-  Push(B85HuffB91, B85Huff.symbolsSize)
-  Push(B91HuffB91, B91Huff.symbolsSize)
-  Push(HuffB64, HuffmanCoded.symbolsSize)
-  Push(HuffB85, HuffmanCoded.symbolsSize)
-  Push(HuffB91, HuffmanCoded.symbolsSize)
+  Data.push(EncodeHuffman(File).size)
 
   Data.push(File.byteLength)
   Data.push(filepath)
@@ -77,37 +76,15 @@ function processFile (filepath) {
   return Data
 }
 
-const FileSizeKey = 18
-const FilePathKey = 19
-const Keys = [
-  'Base64',
-  'Base85',
-  'Base91',
-  'Base64 + Huffman',
-  'Base85 + Huffman',
-  'Base91 + Huffman',
-  'Base64 + Huffman + Base64',
-  'Base85 + Huffman + Base64',
-  'Base91 + Huffman + Base64',
-  'Base64 + Huffman + Base85',
-  'Base85 + Huffman + Base85',
-  'Base91 + Huffman + Base85',
-  'Base64 + Huffman + Base91',
-  'Base85 + Huffman + Base91',
-  'Base91 + Huffman + Base91',
-  'Huffman + Base64',
-  'Huffman + Base85',
-  'Huffman + Base91'
-]
-
 function ComputeBenchMarkResults (data) {
-  let result = 'Method,Mean,Variance,Max\n'
-  for (let i = 0; i < Keys.length; i++) {
+  const FileSizeKey = Cases.length
+  let result = 'Strategy,Mean,Variance,Max\n'
+  for (let i = 0; i < Cases.length; i++) {
     const Column = []
     for (const Row of data) {
       Column.push(Row[i] * 100 / Row[FileSizeKey])
     }
-    result += `${Keys[i]},${mean(Column).toFixed(3)},${sampleVariance(Column).toFixed(3)},${max(Column).toFixed(3)}\n`
+    result += `${Cases[i]},${mean(Column).toFixed(3)},${sampleVariance(Column).toFixed(3)},${max(Column).toFixed(3)}\n`
     Column.length = 0
   }
 
@@ -115,8 +92,10 @@ function ComputeBenchMarkResults (data) {
 }
 
 function DataToString (data) {
-  let sizeTable = 'File,Size,' + Keys.map(k => `${k} bytes`).join() + '\n'
-  let percentageTable = '\n\nFile,' + Keys.map(k => `${k} %`).join() + '\n'
+  const FileSizeKey = Cases.length
+  const FilePathKey = Cases.length + 1
+  let sizeTable = 'File,Size,' + Cases.map(k => `${k} bytes`).join() + '\n'
+  let percentageTable = '\n\nFile,' + Cases.map(k => `${k} %`).join() + '\n'
   for (const Row of data) {
     const FilePath = Row[FilePathKey]
     const FileSize = Row[FileSizeKey]
