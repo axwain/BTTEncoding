@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Decoding Benchmark</title>
+</head>
+<body>
+  <label for="cycles">
+    Repetitions per test: 
+    <input type="number" id='cycles' value=0>
+  </label>
+  <br>
+  <label for="title">
+    Results Title:
+    <input type="text" id="title" placeholder="Results Title">
+  </label>
+  <br>
+  <button id="start" disabled>Begin Benchmark</button>
+  <br>
+  <label for="progress">
+    Benchmark Progress
+    <progress id="progress" value="0" max="100"></progress>
+  </label>
+  <script src="index.js"></script>
+</body>
+</html>
