@@ -4,25 +4,19 @@ import { Decode85 } from '../base85/decoder.js'
 import { Decode91 } from '../base91/decoder.js'
 
 function Decode64 (text) {
-  return window.atob(text)
+  return Buffer.from(text, 'base64')
 }
 
 function ByteArrayToString (byteArray) {
   return byteArray.reduce(function (accu, val) { return accu + String.fromCharCode(val) }, '')
 }
 
-function decodeFunc (decoder) {
-  return function (array, map) {
-    return decoder(array, map)
-  }
-}
-
 const Decoders = {
-  Base16: decodeFunc(Decode16),
-  Base32: decodeFunc(Decode32),
-  Base64: decodeFunc(Decode64),
-  Base85: decodeFunc(Decode85),
-  Base91: decodeFunc(Decode91)
+  Base16: Decode16,
+  Base32: Decode32,
+  Base64: Decode64,
+  Base85: Decode85,
+  Base91: Decode91
 }
 
 const DecodersKeys = Object.keys(Decoders)
