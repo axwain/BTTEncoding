@@ -4,6 +4,7 @@
   "description": "Binary to text encoding library and tests",
   "main": "index.js",
   "scripts": {
+    "benchmark-decoding": "node ./src/scripts/benchmarkDecoding.js",
     "benchmark-encoding": "node ./src/scripts/benchmarkEncoding.js",
     "test": "jest --coverage --detectOpenHandles"
   },
@@ -31,20 +32,15 @@
   "devDependencies": {
     "@babel/preset-env": "^7.13.10",
     "babel-jest": "^26.6.3",
-    "body-parser": "^1.19.0",
     "colors": "^1.4.0",
-    "cors": "^2.8.5",
     "eslint": "^7.22.0",
     "eslint-config-standard": "^16.0.2",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jest": "^24.3.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.3.1",
-    "express": "^4.17.1",
     "jest": "^26.6.3",
     "simple-statistics": "^7.6.0"
   },
-  "dependencies": {
-    "axios": "^0.21.1"
-  }
+  "dependencies": {}
 }
